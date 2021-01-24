@@ -139,28 +139,42 @@ let queueTrack = e => {
         );
 };
 
-// OAuth setup
-var auth = new ClientOAuth2({
-    clientId: "d187382ee43545e1aec7d557fb80b074",
-    authorizationUri: "https://accounts.spotify.com/authorize",
-    redirectUri: "http://localhost:8080/",
-    scopes: ["user-read-currently-playing", "user-modify-playback-state"],
-});
+let randomString = length => {
+    let charset = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz1234567890";
+    let ret = "";
+    for (let i = 0; i < length; i++) {
+        ret += charset[Math.floor(Math.random() * charset.length)];
+    }
+    return ret;
+};
 
 // Check if we've been given a token from spotify
 if (location.hash.length > 0) {
     let params = new URLSearchParams(location.hash.replace("#", "?"));
-    let expires = params.get("expires_in");
-    let now = Math.floor(Date.now()/1000);
-    localStorage["expires"] = now + parseInt(expires) - 120;
+    
+    if (params.get("state") === localStorage["state"]) {
+        let expires = params.get("expires_in");
+        let now = Math.floor(Date.now()/1000);
+        localStorage["expires"] = now + parseInt(expires) - 120;
 
-    localStorage["token"] = params.get("access_token");
+        localStorage["token"] = params.get("access_token");
+    }
 
     document.location.replace("/");
 }
 
 // Do we need to get a token?
 if (localStorage["token"] === undefined || localStorage["expires"] === undefined || Math.floor(Date.now()/1000) >= parseInt(localStorage["expires"])) {
+    let state = randomString(32);
+    localStorage["state"] = state;
+    let auth = new ClientOAuth2({
+        clientId: "d187382ee43545e1aec7d557fb80b074",
+        authorizationUri: "https://accounts.spotify.com/authorize",
+        redirectUri: "http://localhost:8080/",
+        scopes: ["user-read-currently-playing", "user-modify-playback-state"],
+        state: state
+    });
+
     let main = document.getElementById("main");
     main.style.display = "none";
 
