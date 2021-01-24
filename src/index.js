@@ -127,8 +127,6 @@ let queueTrack = e => {
         uri = e.srcElement.parentElement.dataset.trackUri;
         elem = e.srcElement.parentElement;
     }
-    console.log(elem);
-    console.log(uri);
 
     spotify.queue(uri)
         .then(
