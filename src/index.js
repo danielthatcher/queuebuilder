@@ -67,7 +67,7 @@ let populateSelector = () => {
     // Clear out current values
     let existing = document.querySelectorAll("#selector > .selector-element");
     if (!existing || existing.length === 0) {
-        for (let i = 0; i < 9; i++) {
+        for (let i = 0; i < 12; i++) {
             let t = document.getElementById("selector-element-template").content;
             let e = document.importNode(t, true);
             document.getElementById("selector").appendChild(e);
@@ -88,7 +88,7 @@ let fillSelectorElement = elem => {
     }
 
     let direction = Math.random() > 0.5 ? 1.0 : -1.0;
-    let target = current + (Math.abs(current) * 0.15 * direction);
+    let target = current + (Math.abs(current) * 0.10 * direction);
     let descriptor = direction == 1.0 ? "min_" : "max_";
     descriptor += feature;
 

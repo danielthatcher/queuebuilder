@@ -1,5 +1,6 @@
 $spotify-green: #1DB954;
 $spotify-white: #FFFFFF;
+$grey: #c0c0c0;
 
 @mixin rounded-button {
     border: none;
@@ -51,13 +52,41 @@ body {
     #selector {
         display: grid;
         grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        grid-gap: 5px;
+        padding: 15px;
+
+        overflow-y: scroll;
+        scrollbar-width: 0;
+        &::-webkit-scrollbar {
+            display: none;
+        }
 
         .selector-element {
             color: $spotify-white;
+            justify-content: center;
 
             img {
                 max-height: 200px;
                 max-width: 200px;
+            }
+
+            h1 {
+                color: $grey;
+                font-size: 12;
+                margin: 5px;
+                margin-top: 3px;
+            }
+
+            h2 {
+                color: $grey;
+                font-size: 10;
+                margin: 5px;
+            }
+
+            h3 {
+                margin: 5px;
+                margin-bottom: 0px;
+                font-size: 15;
             }
         }
     }
@@ -80,19 +109,31 @@ body {
 
         #track-info {
             display: grid;
-            grid-template-rows: 2fr 1fr;
+            grid-template-rows: 1fr 1fr 1fr;
             grid-template-columns: 1fr;
             grid-column-gap: 30px;
             color: $spotify-white;
             max-height: inherit;
 
             #track-title {
-                font-size: 15px;
-                margin: 5px;
+                font-size: 30px;
+                padding: 0px;
+                margin: 0px;
+                color: $spotify-white;
             }
+
             #track-artist {
-                font-size: 10px;
-                margin: 5px;
+                font-size: 25px;
+                padding: 0px;
+                margin: 0px;
+                color: $grey;
+            }
+
+            .track-text-container {
+                display: flex;
+                align-items: center;
+                margin: 0px;
+                margin-left: 10px;
             }
         }
     }
