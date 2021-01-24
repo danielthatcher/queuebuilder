@@ -98,6 +98,10 @@ let fillSelectorElement = elem => {
         .then(
             data => {
                 let track = data["tracks"][0];
+                if (!track) {
+                    populateSelector(elem);
+                    return;
+                }
 
                 elem.querySelector("[name=artwork]").src = track["album"]["images"][1]["url"];
                 elem.querySelector("[name=artist]").innerText = getArtistList(track);
