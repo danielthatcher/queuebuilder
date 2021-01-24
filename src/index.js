@@ -2,87 +2,28 @@ import './styles.scss';
 const ClientOAuth2 = require("client-oauth2");
 const SpotifyWebApi = require("spotify-web-api-js")
 
+let trackId;
+let trackFeatures;
 let featureTypes = ["acousticness", "danceability", "energy", "instrumentalness", "liveness", "loudness", "speechiness", "valence", "tempo"];
-let buttonStates = {}
-featureTypes.forEach(f => {
-    buttonStates[f] = 0; // -1 = less, 0 = unselected, 1 = more
-});
-console.log(buttonStates);
 
-// Recompute the layout on page resize
-let updateLayout = () => {
-    let numDivs = featureTypes.length;
-    let selector = document.getElementById("selector");
-    let selectorElements = document.getElementsByClassName("selector-element");
-
-    if (screen.width > 850) {
-        // Vertical selectors
-        selector.style["grid-template-columns"] = "1fr ".repeat(numDivs).trim();
-        selector.style["grid-template-rows"] = "1fr";
-        for (let e of selectorElements) {
-            e.classList.remove("selector-element-horizontal");
-            e.classList.add("selector-element-vertical");
-
-            let buttonTop = e.getElementsByClassName("selector-button-top")[0];
-            buttonTop.innerText = "More";
-            buttonTop.onclick = increaseFeature;
-
-            let buttonBottom = e.getElementsByClassName("selector-button-bottom")[0];
-            buttonBottom.innerText = "Less";
-            buttonBottom.onclick = decreaseFeature;
-        }
-    } else {
-        // Horizontal selectors
-        selector.style["grid-template-columns"] = "1fr";
-        selector.style["grid-template-rows"] = "1fr ".repeat(numDivs).trim();
-        for (let e of selectorElements) {
-            e.classList.remove("selector-element-vertical");
-            e.classList.add("selector-element-horizontal");
-
-            e.getElementsByClassName("selector-button-top")[0].innerText = "Less";
-            e.getElementsByClassName("selector-button-bottom")[0].innerText = "More";
-        }
-    }
+// Returns a comma separated list of the artists for a track
+let getArtistList = t => {
+    let artists = [];
+    t["artists"].forEach(artist => { artists.push(artist["name"]) });
+    return artists.join(", ");
 };
-window.onresize = updateLayout;
 
-// Feature change buttons clicked
-var increaseFeature = e => {
-    e.preventDefault();
-    let feature = e.srcElement.dataset.feature;
-    if (buttonStates[feature] === 0) {
-        buttonStates[feature] = 1;
-    } else if (buttonStates[feature] === 1) {
-        buttonStates[feature] = 0;
-    }
-    console.log(buttonStates);
-}
-
-var decreaseFeature = e => {
-    e.preventDefault();
-    let feature = e.srcElement.dataset.feature;
-    if (buttonStates[feature] === 0) {
-        buttonStates[feature] = -1;
-    } else if (buttonStates[feature] === -1) {
-        buttonStates[feature] = 0;
-    } 
-    console.log(buttonStates);
-}
-
-let mainLoop = () => {
+let updatePlayer = () => {
     let track;
     // Fill the player
     spotify.getMyCurrentPlayingTrack()
         .then(
             data => {
-                console.log(data);
                 track = data;
                 let imageUri = data["item"]["album"]["images"][0]["url"];
                 document.querySelector("#artwork").src = imageUri;
 
-                let artists = [];
-                data["item"]["artists"].forEach(artist => { artists.push(artist["name"]) })
-                document.getElementById("track-artist").textContent = artists.join(", ")
+                document.getElementById("track-artist").textContent = getArtistList(data["item"]);
 
                 let name = data["item"]["name"];
                 document.getElementById("track-title").textContent = name;
@@ -95,28 +36,117 @@ let mainLoop = () => {
 
                 // Get the features for the current track
                 let id = track["item"]["id"];
-                return spotify.getAudioFeaturesForTrack(id);
+                if (id !== trackId) {
+                    populateSelector(); // Re-populate selector on track change
+                }
+                trackId = id;
+                return spotify.getAudioFeaturesForTrack(trackId);
             },
             err => {
                 console.log(err);
             }
         )
         .then(
-            features => {
-                console.log(features);
+            data => {
+                trackFeatures = data;
+                if (document.querySelectorAll("#selector > .selector-element").length === 0) {
+                    populateSelector();
+                }
             },
             err => {
                 console.log(err);
             }
-        )
+        );
+};
+
+let populateSelector = () => {
+    if (!trackId) {
+        return;
+    }
+
+    // Clear out current values
+    let existing = document.querySelectorAll("#selector > .selector-element");
+    if (!existing || existing.length === 0) {
+        for (let i = 0; i < 9; i++) {
+            let t = document.getElementById("selector-element-template").content;
+            let e = document.importNode(t, true);
+            document.getElementById("selector").appendChild(e);
+            existing = document.querySelectorAll("#selector > .selector-element");
+
+        }
+    }
+
+    existing.forEach(e => { fillSelectorElement(e) });
 }
+
+let fillSelectorElement = elem => {
+    let current = 0;
+    let feature;
+    while (current == 0) {
+        feature = featureTypes[Math.floor(Math.random() * featureTypes.length)]
+        current = trackFeatures[feature];
+    }
+
+    let direction = Math.random() > 0.5 ? 1.0 : -1.0;
+    let target = current + (Math.abs(current) * 0.15 * direction);
+    let descriptor = direction == 1.0 ? "min_" : "max_";
+    descriptor += feature;
+
+    let r = {seed_tracks: [trackId], limit: 1}
+    r[descriptor] = target;
+    spotify.getRecommendations(r)
+        .then(
+            data => {
+                let track = data["tracks"][0];
+
+                elem.querySelector("[name=artwork]").src = track["album"]["images"][1]["url"];
+                elem.querySelector("[name=artist]").innerText = getArtistList(track);
+                elem.querySelector("[name=title]").innerText = track["name"];
+
+                let label = direction == 1.0 ? "More" : "Less";
+                label += " " + feature;
+                elem.querySelector("[name=feature]").innerText = label;
+
+                elem.dataset.trackUri = track["uri"];
+                elem.onclick = queueTrack;
+            },
+            err => {
+                console.log(err);
+            }
+        );
+}
+
+// Called when a song is clicked
+let queueTrack = e => {
+    let uri;
+    let elem;
+    if (e.srcElement.dataset.trackUri) {
+        uri = e.srcElement.dataset.trackUri;
+        elem = e.srcElement;
+    } else {
+        uri = e.srcElement.parentElement.dataset.trackUri;
+        elem = e.srcElement.parentElement;
+    }
+    console.log(elem);
+    console.log(uri);
+
+    spotify.queue(uri)
+        .then(
+            () => {
+                fillSelectorElement(elem);
+            },
+            err => {
+                console.log(err);
+            }
+        );
+};
 
 // OAuth setup
 var auth = new ClientOAuth2({
     clientId: "d187382ee43545e1aec7d557fb80b074",
     authorizationUri: "https://accounts.spotify.com/authorize",
     redirectUri: "http://localhost:8080/",
-    scopes: ["user-read-currently-playing"],
+    scopes: ["user-read-currently-playing", "user-modify-playback-state"],
 });
 
 // Check if we've been given a token from spotify
@@ -148,21 +178,6 @@ if (localStorage["token"] === undefined || localStorage["expires"] === undefined
     var spotify = new SpotifyWebApi();
     spotify.setAccessToken(localStorage["token"]);
 
-    // Page setup
-    let selector = document.getElementById("selector");
-    let elem = selector.lastChild;
-    selector.removeChild(elem);
-    for (let i = 0; i < featureTypes.length; i++) {
-        let clone = elem.cloneNode(true);
-        clone.getElementsByClassName("selector-category")[0].innerText = featureTypes[i];
-        let buttons = clone.getElementsByClassName("selector-button");
-        for (let b of buttons) {
-            b.dataset.feature = featureTypes[i];
-        }
-        selector.appendChild(clone);
-    }
-    updateLayout();
-
-    mainLoop();
-    setInterval(mainLoop, 5000);
+    updatePlayer();
+    setInterval(updatePlayer, 3000);
 }

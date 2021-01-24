@@ -13,11 +13,14 @@
 
         <div id="main">
             <div id="selector">
-                <div class="selector-element">
-                    <div class="selector-button-container"><button class="selector-button selector-button-top"></button></div>
-                    <div class="selector-category"></div>
-                    <div class="selector-button-container"><button class="selector-button selector-button-bottom"></button></div>
-                </div>
+                <template id="selector-element-template">
+                    <div class="selector-element">
+                        <img class="selector-element-img" name="artwork" />
+                        <h1 name="title"></h1>
+                        <h2 name="artist"></h2>
+                        <h3 name="feature"></h3>
+                    </div>
+                </template>
             </div>
             <div id="player">
                 <div id="artwork-container">

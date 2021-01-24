@@ -50,40 +50,15 @@ body {
 
     #selector {
         display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
 
         .selector-element {
-            display: grid;
+            color: $spotify-white;
 
-            .selector-category {
-                color: white;
-                text-align: center;
-                overflow-wrap: break-word;
+            img {
+                max-height: 200px;
+                max-width: 200px;
             }
-
-            .selector-button-container {
-                display: flex;
-                justify-content: center;
-                align-items: center;
-
-                .selector-button {
-                    @include rounded-button;
-                }
-
-                .selector-button-active {
-                    background-color: $spotify-green;
-                }
-
-            }
-        }
-
-        .selector-element-vertical {
-            grid-template-columns: 1fr;
-            grid-template-rows: 1fr auto 1fr;
-        }
-
-        .selector-element-horizontal {
-            grid-template-rows: 1fr;
-            grid-template-columns: 1fr auto 1fr;
         }
     }
 
