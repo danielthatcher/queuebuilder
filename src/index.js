@@ -174,7 +174,7 @@ if (localStorage["token"] === undefined || localStorage["expires"] === undefined
     let auth = new ClientOAuth2({
         clientId: "d187382ee43545e1aec7d557fb80b074",
         authorizationUri: "https://accounts.spotify.com/authorize",
-        redirectUri: "http://localhost:8080/",
+        redirectUri: document.location.href,
         scopes: ["user-read-currently-playing", "user-modify-playback-state"],
         state: state
     });
