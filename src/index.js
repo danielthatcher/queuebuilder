@@ -92,6 +92,9 @@ let fillSelectorElement = elem => {
 
     let r = {seed_tracks: [trackId], limit: 1}
     r[descriptor] = target;
+
+    fade(elem, 0.0);
+
     spotify.getRecommendations(r)
         .then(
             data => {
@@ -111,6 +114,7 @@ let fillSelectorElement = elem => {
 
                 elem.dataset.trackUri = track["uri"];
                 elem.onclick = queueTrack;
+                fade(elem, 1.0);
             },
             err => {
                 console.log(err);
@@ -139,6 +143,19 @@ let queueTrack = e => {
                 console.log(err);
             }
         );
+};
+
+let fade = (elem, opacity) => {
+    return new Promise((resolve, _) => {
+        elem.addEventListener("transitionend", () => onFadeComplete(elem, resolve), false);
+        elem.style.opacity = opacity;
+    });
+};
+
+
+let onFadeComplete = (elem, resolve) => {
+    elem.removeEventListener("transitionend", onFadeComplete);
+    resolve();
 };
 
 let randomString = length => {

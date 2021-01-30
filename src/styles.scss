@@ -74,6 +74,10 @@ body {
             color: $spotify-white;
             justify-content: center;
 
+            transition: opacity 0.5s ease;
+            -moz-transition: opacity 0.5s ease;
+            -webkit-transition: opacity 0.5s ease;
+
             img {
                 max-height: 200px;
                 max-width: 200px;
