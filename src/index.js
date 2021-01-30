@@ -15,6 +15,8 @@ let getArtistList = t => {
 
 let updatePlayer = () => {
     let track;
+    let oldId;
+
     // Fill the player
     spotify.getMyCurrentPlayingTrack()
         .then(
@@ -28,12 +30,8 @@ let updatePlayer = () => {
                 let name = data["item"]["name"];
                 document.getElementById("track-title").textContent = name;
 
-                // Get the features for the current track
-                let id = track["item"]["id"];
-                if (id !== trackId) {
-                    populateSelector(); // Re-populate selector on track change
-                }
-                trackId = id;
+                oldId = trackId;
+                trackId = track["item"]["id"];
                 return spotify.getAudioFeaturesForTrack(trackId);
             },
             err => {
@@ -45,7 +43,7 @@ let updatePlayer = () => {
                 document.getElementById("help").style.display = "none";
                 document.getElementById("selector").style.display = "grid";
                 trackFeatures = data;
-                if (document.querySelectorAll("#selector > .selector-element").length === 0) {
+                if (oldId !== trackId || document.querySelectorAll("#selector > .selector-element").length === 0) {
                     populateSelector();
                 }
             },
