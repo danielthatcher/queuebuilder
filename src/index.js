@@ -28,12 +28,6 @@ let updatePlayer = () => {
                 let name = data["item"]["name"];
                 document.getElementById("track-title").textContent = name;
 
-                // Calculate how long of the song is left
-                let remaining = parseInt(data["progress_ms"]) - parseInt(data["item"]["duration_ms"]);
-                if (remaining < 10000) {
-                    // TODO Stop features being changed and queue song
-                }
-
                 // Get the features for the current track
                 let id = track["item"]["id"];
                 if (id !== trackId) {
@@ -48,6 +42,8 @@ let updatePlayer = () => {
         )
         .then(
             data => {
+                document.getElementById("help").style.display = "none";
+                document.getElementById("selector").style.display = "grid";
                 trackFeatures = data;
                 if (document.querySelectorAll("#selector > .selector-element").length === 0) {
                     populateSelector();
@@ -55,6 +51,8 @@ let updatePlayer = () => {
             },
             err => {
                 console.log(err);
+                document.getElementById("help").style.display = "block";
+                document.getElementById("selector").style.display = "none";
             }
         );
 };

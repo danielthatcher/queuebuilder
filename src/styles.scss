@@ -49,6 +49,14 @@ body {
     grid-template-rows: 1fr auto;
     grid-template-columns: 100%;
 
+    #help {
+        display: none;
+        color: $spotify-white;
+        text-align: center;
+        margin: auto;
+    }
+
+
     #selector {
         display: grid;
         grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
