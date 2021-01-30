@@ -100,7 +100,7 @@ let fillSelectorElement = elem => {
             data => {
                 let track = data["tracks"][0];
                 if (!track) {
-                    populateSelector(elem);
+                    fillSelectorElement(elem);
                     return;
                 }
 
